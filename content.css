@@ -1,0 +1,54 @@
+/**
+ * TubeSift — Content Stylesheet
+ *
+ * CSS-based Shorts hiding is significantly faster than JS-based per-element
+ * hiding because the browser's CSS engine handles the matching natively.
+ * The rules are activated/deactivated by toggling the
+ * [data-tubesift-shorts-blocked] attribute on the <html> element.
+ */
+
+/* ── Shorts Shelf (Homepage) ─────────────────────────────────── */
+html[data-tubesift-shorts-blocked] ytd-rich-shelf-renderer[is-shorts],
+html[data-tubesift-shorts-blocked] ytd-reel-shelf-renderer {
+  display: none !important;
+}
+
+/* ── Shorts Tab / Chip in Search ─────────────────────────────── */
+html[data-tubesift-shorts-blocked] yt-chip-cloud-chip-renderer:has(yt-formatted-string[title="Shorts"]) {
+  display: none !important;
+}
+
+/* ── Shorts in Left Sidebar Guide ────────────────────────────── */
+html[data-tubesift-shorts-blocked] ytd-guide-entry-renderer:has(a[title="Shorts"]),
+html[data-tubesift-shorts-blocked] ytd-mini-guide-entry-renderer:has(a[title="Shorts"]) {
+  display: none !important;
+}
+
+/* ── Shorts in Navigation Menu ───────────────────────────────── */
+html[data-tubesift-shorts-blocked] ytd-guide-entry-renderer:has(a[href="/shorts"]),
+html[data-tubesift-shorts-blocked] ytd-mini-guide-entry-renderer:has(a[href="/shorts"]) {
+  display: none !important;
+}
+
+/* ── Individual Shorts Videos in Feeds ───────────────────────── */
+html[data-tubesift-shorts-blocked] ytd-video-renderer:has(a[href*="/shorts/"]),
+html[data-tubesift-shorts-blocked] ytd-rich-item-renderer:has(a[href*="/shorts/"]),
+html[data-tubesift-shorts-blocked] ytd-grid-video-renderer:has(a[href*="/shorts/"]),
+html[data-tubesift-shorts-blocked] ytd-compact-video-renderer:has(a[href*="/shorts/"]) {
+  display: none !important;
+}
+
+/* ── Shorts Overlay Badges on Thumbnails ─────────────────────── */
+html[data-tubesift-shorts-blocked] ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"] {
+  display: none !important;
+}
+
+/* ── Shorts Notification Entries ─────────────────────────────── */
+html[data-tubesift-shorts-blocked] ytd-notification-renderer:has(a[href*="/shorts/"]) {
+  display: none !important;
+}
+
+/* ── Year Filter Hidden Videos ───────────────────────────────── */
+[data-tubesift-year-hidden] {
+  display: none !important;
+}

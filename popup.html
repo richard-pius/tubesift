@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TubeSift — Settings</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <header class="popup-header">
+    <div class="brand">
+      <img src="icons/icon48.png" alt="TubeSift" class="brand-icon" width="28" height="28">
+      <div class="brand-text">
+        <h1>TubeSift</h1>
+        <span class="tagline">Video Feed Filter</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="popup-body">
+    <!-- ── Shorts Blocker Section ──────────────────────────── -->
+    <section class="setting-section" id="section-shorts">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Block Shorts</span>
+          <span class="setting-desc">Hide all Shorts from YouTube</span>
+        </div>
+        <label class="toggle" for="toggle-shorts">
+          <input type="checkbox" id="toggle-shorts">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Year Filter Section ─────────────────────────────── -->
+    <section class="setting-section" id="section-year">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-label">Filter by Year</span>
+          <span class="setting-desc">Show videos from specific years only</span>
+        </div>
+        <label class="toggle" for="toggle-year">
+          <input type="checkbox" id="toggle-year">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Year filter controls (visible when toggle is on) -->
+      <div class="year-controls hidden" id="year-controls">
+        <!-- Mode Selector -->
+        <div class="mode-selector" id="mode-selector">
+          <button class="mode-btn active" data-mode="single" id="btn-mode-single">
+            Single Year
+          </button>
+          <button class="mode-btn" data-mode="range" id="btn-mode-range">
+            Year Range
+          </button>
+        </div>
+
+        <!-- Single Year Picker -->
+        <div class="year-picker" id="picker-single">
+          <label class="picker-label" for="select-year-single">Year</label>
+          <select class="year-select" id="select-year-single"></select>
+        </div>
+
+        <!-- Year Range Picker -->
+        <div class="year-picker hidden" id="picker-range">
+          <div class="range-row">
+            <div class="range-field">
+              <label class="picker-label" for="select-year-from">From</label>
+              <select class="year-select" id="select-year-from"></select>
+            </div>
+            <span class="range-separator">—</span>
+            <div class="range-field">
+              <label class="picker-label" for="select-year-to">To</label>
+              <select class="year-select" id="select-year-to"></select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer class="popup-footer">
+    <span class="save-indicator" id="save-indicator">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      Saved
+    </span>
+    <span class="version">v1.0.0</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
