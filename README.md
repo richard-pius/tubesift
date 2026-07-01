@@ -49,7 +49,7 @@ A lightweight, privacy-respecting Chrome extension that gives you control over y
 
 **Option A: Clone with Git**
 ```bash
-git clone https://github.com/YOUR_USERNAME/tubesift.git
+git clone git@github.com:richard-pius/tubesift.git
 ```
 
 **Option B: Download ZIP**
