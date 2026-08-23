@@ -1,351 +1,541 @@
 /**
  * TubeSift — Content Script
  *
- * Runs on all youtube.com pages. Handles:
- *   1. Shorts DOM hiding (via CSS attribute toggle — see content.css)
- *   2. Year-based video filtering (JS-based DOM analysis)
+ * Runs on every youtube.com page (desktop and m.youtube.com). Handles:
+ *   1. Shorts hiding                       — pure CSS, toggled by an attribute
+ *   2. Focus mode (declutter the UI)       — pure CSS, toggled by attributes
+ *   3. Video filtering by year / duration / keyword / channel — JS + DOM
  *
- * YouTube is a Single Page Application (SPA) that lazy-loads content as the
- * user scrolls and navigates. A MutationObserver continuously monitors the
- * DOM for new video elements and applies filters.
+ * YouTube is a single-page app that lazy-loads content as the user scrolls and
+ * navigates, so a MutationObserver watches for new video cards and filters them.
  *
  * Performance safeguards:
- *   - Shorts hiding uses pure CSS (no per-element JS work)
- *   - MutationObserver callback is debounced (200ms)
- *   - Processed elements are marked with data attributes to avoid re-work
- *   - requestAnimationFrame batches DOM writes
- *   - Observer ignores its own mutations via attribute filtering
+ *   - Everything that CSS can do is done in CSS (zero per-element JS cost)
+ *   - The observer callback is debounced and only reacts to added nodes
+ *   - Cards are marked once resolved so they are never re-parsed
+ *   - Cards whose metadata has not streamed in yet are deliberately left
+ *     unmarked so a later pass can resolve them
+ *   - DOM writes are batched inside requestAnimationFrame
  *
- * Copyright / ToS compliance:
- *   - Only manipulates the client-side DOM (show/hide elements)
- *   - Does NOT download, modify, or intercept any video streams
- *   - Does NOT circumvent paywalls, age-gates, or access controls
+ * Terms-of-service posture:
+ *   - Only client-side DOM visibility is changed
+ *   - No video stream is downloaded, modified or intercepted
+ *   - No paywall, age-gate or access control is circumvented
  */
 'use strict';
 
-(function TubeSift() {
-  // ── Constants ──────────────────────────────────────────────────
+(function TubeSiftContent() {
+  const TS = globalThis.TubeSift;
+  if (!TS) return; // common.js failed to load — bail out quietly
+  const { api } = TS;
 
-  /** Attribute set on <html> to activate CSS-based Shorts hiding */
-  const SHORTS_ATTR = 'data-tubesift-shorts-blocked';
+  // ── Attributes ─────────────────────────────────────────────────
 
-  /** Attribute set on processed video elements */
-  const PROCESSED_ATTR = 'data-tubesift-processed';
+  /** Set on <html> to activate the CSS rule sets. */
+  const ROOT_FLAGS = {
+    shortsBlocked: 'data-ts-shorts',
+    hideHomeFeed: 'data-ts-hide-home',
+    hideSidebarRecs: 'data-ts-hide-recs',
+    hideComments: 'data-ts-hide-comments',
+    hideLiveChat: 'data-ts-hide-chat',
+    hideEndScreen: 'data-ts-hide-endscreen',
+    hideExplore: 'data-ts-hide-explore',
+    hideNotifications: 'data-ts-hide-notifications',
+    hideMixes: 'data-ts-hide-mixes',
+    hidePlayables: 'data-ts-hide-playables',
+    grayscaleThumbs: 'data-ts-grayscale',
+  };
 
-  /** Attribute set on year-filtered (hidden) video elements */
-  const YEAR_HIDDEN_ATTR = 'data-tubesift-year-hidden';
+  /** Marks a card whose metadata was successfully read. */
+  const SEEN_ATTR = 'data-ts-seen';
 
-  /** CSS selectors for video container elements */
-  const VIDEO_SELECTORS = [
-    'ytd-rich-item-renderer',      // Homepage grid items
-    'ytd-video-renderer',           // Search results
-    'ytd-compact-video-renderer',   // Sidebar / "Up next" recommendations
-    'ytd-grid-video-renderer',      // Channel page grid
+  /** Marks a hidden card; the value is the reason (year, duration, ...). */
+  const HIDDEN_ATTR = 'data-ts-hidden';
+
+  // ── Selectors ──────────────────────────────────────────────────
+
+  /** Containers that represent one video in a feed, grid, list or sidebar. */
+  const CARD_SELECTORS = [
+    'ytd-rich-item-renderer', // home / subscriptions grid
+    'ytd-video-renderer', // search results
+    'ytd-compact-video-renderer', // watch-page sidebar
+    'ytd-grid-video-renderer', // legacy channel grid
+    'ytd-playlist-video-renderer', // inside a playlist
+    'ytd-video-preview', // hover preview card
+    'yt-lockup-view-model', // 2024+ unified card
   ];
 
-  /** Combined selector string for querySelectorAll */
-  const ALL_VIDEOS_SELECTOR = VIDEO_SELECTORS.join(',');
+  /** Only cards TubeSift has not resolved yet, so passes stay cheap. */
+  const UNSEEN_SELECTOR = CARD_SELECTORS.map((s) => `${s}:not([${SEEN_ATTR}])`).join(',');
 
-  /** Debounce delay for MutationObserver callback (ms) */
-  const DEBOUNCE_MS = 200;
+  /** Where a card's title lives, most specific first. */
+  const TITLE_SELECTORS = [
+    '#video-title',
+    'a#video-title-link',
+    'yt-formatted-string#video-title',
+    'h3 a[title]',
+    '.yt-lockup-metadata-view-model__title',
+    'span[role="text"]',
+  ].join(',');
+
+  /** Where a card's channel name lives. */
+  const CHANNEL_SELECTORS = [
+    'ytd-channel-name a',
+    'ytd-channel-name yt-formatted-string',
+    '#channel-name a',
+    '#channel-name',
+    '.yt-content-metadata-view-model__metadata-text',
+    '#text.ytd-channel-name',
+  ].join(',');
+
+  /** Where a card's duration badge lives. */
+  const DURATION_SELECTORS = [
+    'ytd-thumbnail-overlay-time-status-renderer #text',
+    'ytd-thumbnail-overlay-time-status-renderer span',
+    '.badge-shape-wiz__text',
+    '.ytp-time-duration',
+    'badge-shape[aria-label]',
+  ].join(',');
+
+  /** Where a card's published-date text lives. */
+  const META_SELECTORS = [
+    '#metadata-line span',
+    '.inline-metadata-item',
+    'ytd-video-meta-block span',
+    '.yt-content-metadata-view-model__metadata-text',
+    '#metadata span',
+  ].join(',');
+
+  /** Debounce for the mutation observer (ms). */
+  const DEBOUNCE_MS = 180;
+
+  /** How often hidden-video counts are flushed to the background (ms). */
+  const STATS_FLUSH_MS = 2000;
+
+  /** Upper bound on the per-session set of already-counted videos. */
+  const MAX_COUNTED_KEYS = 5000;
 
   // ── State ──────────────────────────────────────────────────────
 
-  let settings = {
-    shortsBlocked: true,
-    yearFilterEnabled: false,
-    yearFilterMode: 'single',
-    yearFilterSingle: new Date().getFullYear(),
-    yearFilterFrom: 2005,
-    yearFilterTo: new Date().getFullYear(),
-  };
-
+  let settings = { ...TS.DEFAULTS };
   let debounceTimer = null;
-  let isProcessing = false;
+  let statsTimer = null;
+  let selfMutating = false;
+  let pendingStats = Object.create(null);
 
-  // ── Initialization ─────────────────────────────────────────────
+  /** Videos already counted this page session — keeps the statistics honest. */
+  const countedKeys = new Set();
 
-  async function init() {
-    // Load persisted settings
+  // ── Initialisation ─────────────────────────────────────────────
+
+  /**
+   * Loads settings and paints the CSS flags immediately — this runs at
+   * document_start so blocked elements never flash into view.
+   */
+  async function boot() {
     try {
-      const stored = await chrome.storage.sync.get(null);
-      Object.assign(settings, stored);
-    } catch (e) {
-      // Extension context may be invalidated; use defaults
-      console.warn('[TubeSift] Could not load settings:', e.message);
+      settings = await TS.getSettings();
+    } catch (error) {
+      // Extension context can be invalidated during an update; defaults are fine.
+      console.warn('[TubeSift] Could not load settings:', error.message);
     }
+    applyRootFlags();
+    whenBodyReady(init);
+  }
 
-    // Apply initial state
-    applyShortsAttribute();
+  /** Wires up everything that needs a live DOM. */
+  function init() {
+    applyRootFlags();
     scheduleProcess();
-
-    // Observe DOM mutations for new content
     setupObserver();
 
-    // Listen for YouTube SPA navigations
     document.addEventListener('yt-navigate-finish', onNavigate);
+    window.addEventListener('popstate', onNavigate);
 
-    // React to settings changes from the popup in real time
     try {
-      chrome.storage.onChanged.addListener(onSettingsChanged);
-    } catch (e) {
-      // Context invalidated — will reload on next navigation
+      api.storage.onChanged.addListener(onSettingsChanged);
+    } catch (error) {
+      /* context invalidated — settings will be re-read on the next page load */
     }
   }
 
-  // ── Settings Listener ──────────────────────────────────────────
+  // ── Settings ───────────────────────────────────────────────────
 
   function onSettingsChanged(changes, area) {
-    if (area !== 'sync') return;
+    if (area !== 'sync' && area !== 'local') return;
 
-    let needsReprocess = false;
+    let changed = false;
     for (const [key, { newValue }] of Object.entries(changes)) {
-      if (settings[key] !== newValue) {
-        settings[key] = newValue;
-        needsReprocess = true;
-      }
+      if (!(key in TS.DEFAULTS)) continue;
+      settings[key] = newValue;
+      changed = true;
     }
+    if (!changed) return;
 
-    if (!needsReprocess) return;
-
-    applyShortsAttribute();
-
-    // Clear processed markers so all videos are re-evaluated
-    clearProcessedMarkers();
+    applyRootFlags();
+    resetCards();
     scheduleProcess();
   }
-
-  // ── Navigation Handler ─────────────────────────────────────────
 
   function onNavigate() {
-    clearProcessedMarkers();
+    // YouTube reuses card elements across navigations, so re-evaluate them all.
+    resetCards();
     scheduleProcess();
   }
 
-  // ── Shorts CSS Toggle ──────────────────────────────────────────
+  // ── CSS flags on <html> ────────────────────────────────────────
 
-  function applyShortsAttribute() {
-    if (settings.shortsBlocked) {
-      document.documentElement.setAttribute(SHORTS_ATTR, '');
-    } else {
-      document.documentElement.removeAttribute(SHORTS_ATTR);
+  /**
+   * Mirrors the boolean settings onto <html> attributes. content.css keys every
+   * rule off these, which keeps hiding work inside the browser's style engine.
+   */
+  function applyRootFlags() {
+    const root = document.documentElement;
+    const on = settings.enabled !== false;
+
+    root.toggleAttribute('data-ts-active', on);
+    for (const [key, attr] of Object.entries(ROOT_FLAGS)) {
+      root.toggleAttribute(attr, on && !!settings[key]);
     }
   }
 
-  // ── MutationObserver ───────────────────────────────────────────
+  // ── Observer ───────────────────────────────────────────────────
 
   function setupObserver() {
     const observer = new MutationObserver((mutations) => {
-      // Skip mutations caused by our own attribute changes
-      if (isProcessing) return;
-
-      // Only react to childList mutations (new elements added)
-      const hasNewContent = mutations.some(
+      if (selfMutating) return;
+      const hasNewNodes = mutations.some(
         (m) => m.type === 'childList' && m.addedNodes.length > 0
       );
-      if (!hasNewContent) return;
-
-      scheduleProcess();
+      if (hasNewNodes) scheduleProcess();
     });
 
-    const target = document.body || document.documentElement;
-    observer.observe(target, {
+    observer.observe(document.body || document.documentElement, {
       childList: true,
       subtree: true,
     });
   }
 
-  // ── Debounced Processing ───────────────────────────────────────
-
   function scheduleProcess() {
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       debounceTimer = null;
-      requestAnimationFrame(processVideos);
+      requestAnimationFrame(processCards);
     }, DEBOUNCE_MS);
   }
 
-  // ── Year Filter Processing ─────────────────────────────────────
+  // ── Card processing ────────────────────────────────────────────
 
-  function processVideos() {
-    isProcessing = true;
+  /** True when at least one card-level filter is switched on. */
+  function anyCardFilterActive() {
+    return (
+      settings.enabled !== false &&
+      (settings.yearFilterEnabled ||
+        settings.durationFilterEnabled ||
+        (settings.keywordFilterEnabled && settings.blockedKeywords.length > 0) ||
+        (settings.channelFilterEnabled && settings.blockedChannels.length > 0))
+    );
+  }
 
+  function processCards() {
+    const filtering = anyCardFilterActive();
+    // Shorts are hidden by CSS, but a pass is still worth running so they can
+    // be counted for the statistics panel.
+    const counting = settings.enabled !== false && settings.shortsBlocked;
+
+    selfMutating = true;
     try {
-      if (!settings.yearFilterEnabled) {
-        // Remove all year-filter hiding
-        const hidden = document.querySelectorAll(`[${YEAR_HIDDEN_ATTR}]`);
-        hidden.forEach((el) => {
-          el.removeAttribute(YEAR_HIDDEN_ATTR);
-        });
-        return;
+      if (!filtering) unhideAll();
+      if (!filtering && !counting) return;
+
+      for (const card of document.querySelectorAll(UNSEEN_SELECTOR)) {
+        evaluateCard(card, filtering);
       }
-
-      // Find all unprocessed video containers
-      const videos = document.querySelectorAll(
-        VIDEO_SELECTORS.map((s) => `${s}:not([${PROCESSED_ATTR}])`).join(',')
-      );
-
-      videos.forEach((el) => {
-        el.setAttribute(PROCESSED_ATTR, '');
-        evaluateVideo(el);
-      });
     } finally {
-      isProcessing = false;
+      selfMutating = false;
     }
   }
 
-  /**
-   * Evaluates a single video element and hides it if outside the year range.
-   */
-  function evaluateVideo(element) {
-    // Skip Shorts (already handled by CSS)
-    const shortsLink = element.querySelector('a[href*="/shorts/"]');
-    if (shortsLink) return;
-
-    // Extract the relative date text from metadata
-    const dateText = extractDateText(element);
-    if (!dateText) return;
-
-    const year = parseRelativeDateToYear(dateText);
-    if (year === null) return;
-
-    if (!isYearAllowed(year)) {
-      element.setAttribute(YEAR_HIDDEN_ATTR, year.toString());
-    } else {
-      element.removeAttribute(YEAR_HIDDEN_ATTR);
-    }
-  }
-
-  // ── Date Extraction ────────────────────────────────────────────
-
-  /**
-   * Searches known metadata containers for a relative date string.
-   * YouTube displays dates like "2 years ago", "3 months ago", etc.
-   */
-  function extractDateText(element) {
-    // Selectors ordered by specificity / likelihood
-    const candidates = element.querySelectorAll(
-      '#metadata-line span,' +
-      '#metadata #metadata-line span,' +
-      '.inline-metadata-item,' +
-      'ytd-video-meta-block span,' +
-      '#metadata-line .inline-metadata-item'
-    );
-
-    for (const node of candidates) {
-      const text = node.textContent.trim();
-      if (isRelativeDateText(text)) {
-        return text;
+  /** Clears every TubeSift decision so cards get a fresh verdict. */
+  function resetCards() {
+    selfMutating = true;
+    try {
+      for (const el of document.querySelectorAll(`[${SEEN_ATTR}]`)) {
+        el.removeAttribute(SEEN_ATTR);
       }
+      unhideAll();
+    } finally {
+      selfMutating = false;
+    }
+  }
+
+  function unhideAll() {
+    for (const el of document.querySelectorAll(`[${HIDDEN_ATTR}]`)) {
+      el.removeAttribute(HIDDEN_ATTR);
+    }
+  }
+
+  /**
+   * Decides the fate of a single card.
+   *
+   * A card is only marked "seen" once we managed to read a title, because
+   * YouTube frequently inserts the shell of a card before its metadata streams
+   * in. Leaving it unmarked lets the next pass finish the job.
+   */
+  function evaluateCard(card, filtering) {
+    // Shorts are hidden by CSS, so all that is left to do here is count them.
+    // Marking them seen keeps them out of every later query.
+    const shortsLink = card.querySelector('a[href*="/shorts/"]');
+    if (shortsLink) {
+      card.setAttribute(SEEN_ATTR, '');
+      if (settings.shortsBlocked) countHidden('shorts', shortsLink.href);
+      return;
     }
 
-    // Fallback: search all text nodes in the metadata area
-    const metaBlock = element.querySelector(
-      'ytd-video-meta-block, #metadata-line, #metadata'
-    );
-    if (metaBlock) {
-      const text = metaBlock.textContent;
-      const match = text.match(
-        /\d+\s+(?:second|minute|hour|day|week|month|year)s?\s+ago/i
-      );
-      if (match) return match[0];
+    if (!filtering) return;
+
+    const title = readText(card, TITLE_SELECTORS);
+    if (!title) return; // metadata has not arrived yet — retry on the next pass
+
+    card.setAttribute(SEEN_ATTR, '');
+
+    const channel = readText(card, CHANNEL_SELECTORS);
+
+    // The allow list always wins, before any other rule is considered.
+    if (channel && matchesList(channel, settings.allowedChannels)) {
+      card.removeAttribute(HIDDEN_ATTR);
+      return;
+    }
+
+    const reason = firstFailingRule(card, title, channel);
+    if (reason) {
+      if (card.getAttribute(HIDDEN_ATTR) !== reason) {
+        card.setAttribute(HIDDEN_ATTR, reason);
+        countHidden(reason, cardKey(card, title, channel));
+      }
+    } else {
+      card.removeAttribute(HIDDEN_ATTR);
+    }
+  }
+
+  /**
+   * A stable identity for a card, used to keep the statistics honest.
+   *
+   * The video URL is ideal; where there is none (some lockup variants) the
+   * title and channel together are a good enough stand-in.
+   */
+  function cardKey(card, title, channel) {
+    const link = card.querySelector('a[href*="/watch?v="], a[href^="/watch"]');
+    if (link) {
+      const id = /[?&]v=([\w-]{6,})/.exec(link.getAttribute('href') || '');
+      if (id) return id[1];
+    }
+    return title + ' :: ' + channel;
+  }
+
+  /** Returns the name of the first rule the card violates, or null. */
+  function firstFailingRule(card, title, channel) {
+    if (
+      settings.channelFilterEnabled &&
+      channel &&
+      matchesList(channel, settings.blockedChannels)
+    ) {
+      return 'channel';
+    }
+
+    if (settings.keywordFilterEnabled && matchesList(title, settings.blockedKeywords)) {
+      return 'keyword';
+    }
+
+    if (settings.durationFilterEnabled) {
+      const seconds = parseDuration(readText(card, DURATION_SELECTORS));
+      if (seconds !== null && !isDurationAllowed(seconds)) return 'duration';
+    }
+
+    if (settings.yearFilterEnabled) {
+      const year = readYear(card);
+      if (year !== null && !isYearAllowed(year)) return 'year';
     }
 
     return null;
   }
 
-  /**
-   * Returns true if the text looks like a relative date (e.g. "2 years ago").
-   */
-  function isRelativeDateText(text) {
-    return /^\s*(?:Streamed\s+)?\d+\s+(?:second|minute|hour|day|week|month|year)s?\s+ago\s*$/i.test(
-      text
-    );
+  // ── Extraction helpers ─────────────────────────────────────────
+
+  /** Returns the first non-empty text match for a selector list. */
+  function readText(card, selectors) {
+    for (const node of card.querySelectorAll(selectors)) {
+      const text = (node.getAttribute('title') || node.textContent || '').trim();
+      if (text) return text;
+    }
+    return '';
   }
 
-  // ── Date Parsing ───────────────────────────────────────────────
+  /** Case-insensitive substring match against a user-supplied list. */
+  function matchesList(text, list) {
+    if (!text || !Array.isArray(list) || list.length === 0) return false;
+    const haystack = text.toLowerCase();
+    return list.some((entry) => {
+      const needle = String(entry).trim().toLowerCase();
+      return needle.length > 0 && haystack.includes(needle);
+    });
+  }
+
+  /** Parses "12:34" / "1:02:03" into seconds. Returns null when unparseable. */
+  function parseDuration(text) {
+    if (!text) return null;
+    const match = text.match(/(?:(\d+):)?(\d{1,2}):(\d{2})\b/);
+    if (!match) return null;
+    const hours = parseInt(match[1] || '0', 10);
+    const minutes = parseInt(match[2], 10);
+    const seconds = parseInt(match[3], 10);
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  function isDurationAllowed(seconds) {
+    const min = (Number(settings.durationMin) || 0) * 60;
+    const max = (Number(settings.durationMax) || 0) * 60;
+    if (min > 0 && seconds < min) return false;
+    if (max > 0 && seconds > max) return false;
+    return true;
+  }
+
+  /** Best-effort publication year for a card. */
+  function readYear(card) {
+    for (const node of card.querySelectorAll(META_SELECTORS)) {
+      const text = node.textContent.trim();
+      const year = textToYear(text);
+      if (year !== null) return year;
+    }
+
+    // Fallback: scan the whole metadata block in one go.
+    const block = card.querySelector(
+      'ytd-video-meta-block, #metadata-line, #metadata, .yt-content-metadata-view-model-wiz'
+    );
+    return block ? textToYear(block.textContent) : null;
+  }
 
   /**
-   * Converts a relative date string to an estimated publication year.
+   * Converts YouTube's date text into a year.
    *
-   * Note: This is an approximation. A video that says "1 year ago" might
-   * have been published in the current year or the previous year depending
-   * on the exact date. This is an inherent limitation of relative dates.
+   * Handles the relative form ("2 years ago", "Streamed 3 months ago") and the
+   * absolute form ("Jan 5, 2020") that appears on playlists and some locales.
+   *
+   * Relative dates are inherently coarse: a video labelled "1 year ago" may sit
+   * on either side of a new year. This is a limitation of the source data, not
+   * of the parser.
    */
-  function parseRelativeDateToYear(text) {
-    const cleaned = text.toLowerCase().replace(/streamed\s+/i, '').trim();
-    const match = cleaned.match(
+  function textToYear(text) {
+    if (!text) return null;
+    const cleaned = text.toLowerCase();
+
+    const relative = cleaned.match(
       /(\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago/
     );
-    if (!match) return null;
+    if (relative) {
+      const amount = parseInt(relative[1], 10);
+      const unit = relative[2];
+      const d = new Date();
 
-    const amount = parseInt(match[1], 10);
-    const unit = match[2];
-    const now = new Date();
-
-    switch (unit) {
-      case 'second':
-      case 'minute':
-      case 'hour':
-        return now.getFullYear();
-
-      case 'day': {
-        const d = new Date(now);
-        d.setDate(d.getDate() - amount);
-        return d.getFullYear();
+      switch (unit) {
+        case 'second':
+        case 'minute':
+        case 'hour':
+          return d.getFullYear();
+        case 'day':
+          d.setDate(d.getDate() - amount);
+          return d.getFullYear();
+        case 'week':
+          d.setDate(d.getDate() - amount * 7);
+          return d.getFullYear();
+        case 'month':
+          d.setMonth(d.getMonth() - amount);
+          return d.getFullYear();
+        case 'year':
+          return d.getFullYear() - amount;
+        default:
+          return null;
       }
-
-      case 'week': {
-        const d = new Date(now);
-        d.setDate(d.getDate() - amount * 7);
-        return d.getFullYear();
-      }
-
-      case 'month': {
-        const d = new Date(now);
-        d.setMonth(d.getMonth() - amount);
-        return d.getFullYear();
-      }
-
-      case 'year':
-        return now.getFullYear() - amount;
-
-      default:
-        return null;
     }
+
+    // Absolute date, e.g. "Jan 5, 2020" or "5 January 2020".
+    const absolute = text.match(/\b(19[5-9]\d|20\d{2})\b/);
+    if (absolute) {
+      const year = parseInt(absolute[1], 10);
+      if (year >= TS.FIRST_YEAR && year <= TS.CURRENT_YEAR + 1) return year;
+    }
+
+    return null;
   }
 
-  // ── Year Range Check ───────────────────────────────────────────
-
-  /**
-   * Checks whether a given year passes the user's filter.
-   */
+  /** Applies the configured year rule. */
   function isYearAllowed(year) {
-    if (settings.yearFilterMode === 'single') {
-      return year === settings.yearFilterSingle;
+    switch (settings.yearFilterMode) {
+      case 'range':
+        return year >= settings.yearFilterFrom && year <= settings.yearFilterTo;
+      case 'after':
+        return year >= settings.yearFilterSingle;
+      case 'before':
+        return year <= settings.yearFilterSingle;
+      case 'single':
+      default:
+        return year === settings.yearFilterSingle;
     }
-    // Range mode
-    return year >= settings.yearFilterFrom && year <= settings.yearFilterTo;
   }
 
-  // ── Helpers ────────────────────────────────────────────────────
+  // ── Statistics ─────────────────────────────────────────────────
 
   /**
-   * Removes processed markers from all videos so they can be re-evaluated.
-   * Called when settings change or the user navigates to a new page.
+   * Buffers a hide event; flushed to the background in batches.
+   *
+   * Every card is counted at most once per page session, keyed by video. Without
+   * this, a settings change or an SPA navigation re-evaluates cards that are
+   * already on screen and the counters would climb without a single new video
+   * having been filtered.
    */
-  function clearProcessedMarkers() {
-    const marked = document.querySelectorAll(`[${PROCESSED_ATTR}]`);
-    isProcessing = true;
-    marked.forEach((el) => el.removeAttribute(PROCESSED_ATTR));
-    isProcessing = false;
+  function countHidden(reason, key) {
+    if (!settings.countStats) return;
+
+    if (key) {
+      if (countedKeys.has(key)) return;
+      // Long browsing sessions are bounded so the set cannot grow forever.
+      if (countedKeys.size >= MAX_COUNTED_KEYS) countedKeys.clear();
+      countedKeys.add(key);
+    }
+
+    pendingStats[reason] = (pendingStats[reason] || 0) + 1;
+    if (statsTimer) return;
+    statsTimer = setTimeout(flushStats, STATS_FLUSH_MS);
   }
 
-  // ── Entry Point ────────────────────────────────────────────────
+  function flushStats() {
+    statsTimer = null;
+    const reasons = pendingStats;
+    pendingStats = Object.create(null);
+    if (Object.keys(reasons).length === 0) return;
 
-  if (document.body) {
-    init();
-  } else {
-    document.addEventListener('DOMContentLoaded', init);
+    try {
+      const sending = api.runtime.sendMessage({ type: 'ts:hidden', reasons });
+      // Chrome rejects the promise when no listener replies; that is harmless.
+      if (sending && typeof sending.catch === 'function') sending.catch(() => {});
+    } catch (error) {
+      /* background asleep or context invalidated — counts are best-effort */
+    }
   }
+
+  // Flush whatever is buffered before the page goes away.
+  window.addEventListener('pagehide', flushStats);
+
+  // ── Entry point ────────────────────────────────────────────────
+
+  /** Runs `fn` now if <body> exists, otherwise as soon as it does. */
+  function whenBodyReady(fn) {
+    if (document.body) {
+      fn();
+    } else {
+      document.addEventListener('DOMContentLoaded', fn, { once: true });
+    }
+  }
+
+  boot();
 })();

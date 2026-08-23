@@ -1,0 +1,422 @@
+/* ══════════════════════════════════════════════════════════════
+   TubeSift — Options page
+   Layout only; the palette and primitives live in theme.css.
+   ══════════════════════════════════════════════════════════════ */
+
+body {
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* Keyboard users land here first. */
+.skip-link {
+  position: absolute;
+  top: -60px;
+  left: 12px;
+  z-index: 20;
+  padding: 10px 16px;
+  background: var(--ts-accent);
+  color: var(--ts-on-accent);
+  border-radius: var(--ts-radius);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top var(--ts-speed) var(--ts-ease);
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ══ Top bar ══════════════════════════════════════════════════ */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--ts-header);
+  border-bottom: 1px solid var(--ts-border);
+  backdrop-filter: blur(8px);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 14px 28px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  border-radius: 8px;
+}
+
+.brand h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+.brand-sub {
+  font-size: 12px;
+  color: var(--ts-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.master {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  cursor: pointer;
+}
+
+.master-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ts-success);
+}
+
+.master-label[data-off] {
+  color: var(--ts-text-faint);
+}
+
+/* ══ Welcome banner ═══════════════════════════════════════════ */
+
+.welcome {
+  background: var(--ts-accent-soft);
+  border-bottom: 1px solid var(--ts-border);
+}
+
+.welcome-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 20px 28px;
+}
+
+.welcome h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.welcome p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ts-text-muted);
+  max-width: 68ch;
+}
+
+/* ══ Layout ═══════════════════════════════════════════════════ */
+
+.layout {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 36px;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 28px;
+  align-items: start;
+}
+
+.sidenav {
+  position: sticky;
+  top: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidenav-link {
+  padding: 8px 12px;
+  border-radius: var(--ts-radius);
+  color: var(--ts-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--ts-speed) var(--ts-ease),
+    color var(--ts-speed) var(--ts-ease);
+}
+
+.sidenav-link:hover {
+  background: var(--ts-surface-2);
+  color: var(--ts-text);
+}
+
+.sidenav-link[aria-current='true'] {
+  background: var(--ts-accent-soft);
+  color: var(--ts-accent-text);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  min-width: 0;
+}
+
+/* ══ Sections ═════════════════════════════════════════════════ */
+
+.section {
+  scroll-margin-top: 92px;
+}
+
+.section h2 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  margin-bottom: 5px;
+}
+
+.section-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ts-text-muted);
+  max-width: 70ch;
+  margin-bottom: 14px;
+}
+
+/* ══ Cards & rows ═════════════════════════════════════════════ */
+
+.card {
+  background: var(--ts-surface);
+  border: 1px solid var(--ts-border);
+  border-radius: var(--ts-radius-lg);
+  box-shadow: var(--ts-shadow);
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--ts-border);
+}
+
+.row:last-child,
+.card > .inset:last-child {
+  border-bottom: none;
+}
+
+.row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.row-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.row-desc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ts-text-muted);
+  max-width: 62ch;
+}
+
+.row-danger .row-title {
+  color: var(--ts-accent-text);
+}
+
+/* ══ Insets (detail panels under a toggle) ════════════════════ */
+
+.inset {
+  padding: 16px 18px;
+  background: var(--ts-surface-2);
+  border-bottom: 1px solid var(--ts-border);
+}
+
+.inset-flush {
+  background: transparent;
+}
+
+.inset[hidden] {
+  display: none;
+}
+
+/* Dim, but keep readable, when the owning toggle is off. */
+.inset[data-disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hint {
+  margin-top: 9px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ts-text-faint);
+  max-width: 70ch;
+}
+
+.hint strong {
+  color: var(--ts-text-muted);
+}
+
+/* ══ Grids ════════════════════════════════════════════════════ */
+
+.grid-2,
+.grid-3 {
+  display: grid;
+  gap: 14px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-span-2 {
+  grid-column: 1 / -1;
+}
+
+.select-inline {
+  width: auto;
+  min-width: 160px;
+}
+
+/* ══ Shortcuts ════════════════════════════════════════════════ */
+
+.shortcut-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px 20px;
+  padding: 18px;
+  align-items: center;
+}
+
+.shortcut-list dt {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.shortcut-list dd {
+  justify-self: end;
+}
+
+kbd {
+  display: inline-block;
+  padding: 4px 9px;
+  background: var(--ts-surface-2);
+  border: 1px solid var(--ts-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--ts-radius-sm);
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ts-text);
+  white-space: nowrap;
+}
+
+kbd[data-unset] {
+  color: var(--ts-text-faint);
+  font-style: italic;
+  border-bottom-width: 1px;
+}
+
+.shortcut-list + .hint {
+  padding: 0 18px 16px;
+  margin-top: 0;
+}
+
+/* ══ Danger button ════════════════════════════════════════════ */
+
+.btn-danger {
+  background: transparent;
+  color: var(--ts-accent-text);
+  border-color: var(--ts-accent-text);
+}
+
+.btn-danger:hover {
+  background: var(--ts-accent);
+  color: var(--ts-on-accent);
+}
+
+.btn {
+  flex-shrink: 0;
+}
+
+/* ══ Footer ═══════════════════════════════════════════════════ */
+
+.page-footer {
+  padding-top: 6px;
+  border-top: 1px solid var(--ts-border);
+}
+
+.page-footer p {
+  padding-top: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ts-text-faint);
+  max-width: 74ch;
+}
+
+/* ══ Toast ════════════════════════════════════════════════════ */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  z-index: 30;
+  padding: 11px 20px;
+  background: var(--ts-text);
+  color: var(--ts-bg);
+  border-radius: 999px;
+  box-shadow: var(--ts-shadow-lg);
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translate(-50%, 12px);
+  pointer-events: none;
+  transition: opacity 0.25s var(--ts-ease), transform 0.25s var(--ts-ease);
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ══ Narrow windows ═══════════════════════════════════════════ */
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .sidenav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+
+  .topbar-inner {
+    padding: 12px 20px;
+  }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .row {
+    flex-wrap: wrap;
+  }
+}

@@ -1,54 +1,194 @@
 /**
  * TubeSift — Content Stylesheet
  *
- * CSS-based Shorts hiding is significantly faster than JS-based per-element
- * hiding because the browser's CSS engine handles the matching natively.
- * The rules are activated/deactivated by toggling the
- * [data-tubesift-shorts-blocked] attribute on the <html> element.
+ * Every rule is gated on an attribute that the content script sets on <html>.
+ * Doing the hiding in CSS rather than JavaScript means the browser's style
+ * engine does the matching natively: no per-element scripting, no layout
+ * thrash, and elements are hidden before they ever paint.
+ *
+ * Flags set by content.js:
+ *   data-ts-active              extension is not paused
+ *   data-ts-shorts              hide Shorts everywhere
+ *   data-ts-hide-home           blank the home feed
+ *   data-ts-hide-recs           hide watch-page recommendations
+ *   data-ts-hide-comments       hide the comment section
+ *   data-ts-hide-chat           hide live chat
+ *   data-ts-hide-endscreen      hide end-of-video suggestion overlays
+ *   data-ts-hide-explore        hide Explore / Trending entries
+ *   data-ts-hide-notifications  hide the notification bell
+ *   data-ts-hide-mixes          hide auto-generated Mixes and radio
+ *   data-ts-hide-playables      hide Playables (games)
+ *   data-ts-grayscale           desaturate thumbnails
+ *
+ * Selectors deliberately list both the classic `ytd-*` custom elements and the
+ * newer `*-view-model` components, because YouTube ships both simultaneously
+ * and which one you get depends on an A/B bucket.
  */
 
-/* ── Shorts Shelf (Homepage) ─────────────────────────────────── */
-html[data-tubesift-shorts-blocked] ytd-rich-shelf-renderer[is-shorts],
-html[data-tubesift-shorts-blocked] ytd-reel-shelf-renderer {
+/* ══════════════════════════════════════════════════════════════
+   Shorts
+   ══════════════════════════════════════════════════════════════ */
+
+/* Shelves on the home page and in search results */
+html[data-ts-shorts] ytd-rich-shelf-renderer[is-shorts],
+html[data-ts-shorts] ytd-reel-shelf-renderer,
+html[data-ts-shorts] grid-shelf-view-model {
   display: none !important;
 }
 
-/* ── Shorts Tab / Chip in Search ─────────────────────────────── */
-html[data-tubesift-shorts-blocked] yt-chip-cloud-chip-renderer:has(yt-formatted-string[title="Shorts"]) {
+/* Individual Shorts cards anywhere in a feed */
+html[data-ts-shorts] ytd-video-renderer:has(a[href*="/shorts/"]),
+html[data-ts-shorts] ytd-rich-item-renderer:has(a[href*="/shorts/"]),
+html[data-ts-shorts] ytd-grid-video-renderer:has(a[href*="/shorts/"]),
+html[data-ts-shorts] ytd-compact-video-renderer:has(a[href*="/shorts/"]),
+html[data-ts-shorts] ytd-playlist-video-renderer:has(a[href*="/shorts/"]),
+html[data-ts-shorts] yt-lockup-view-model:has(a[href*="/shorts/"]),
+html[data-ts-shorts] ytm-shorts-lockup-view-model,
+html[data-ts-shorts] ytd-reel-item-renderer {
   display: none !important;
 }
 
-/* ── Shorts in Left Sidebar Guide ────────────────────────────── */
-html[data-tubesift-shorts-blocked] ytd-guide-entry-renderer:has(a[title="Shorts"]),
-html[data-tubesift-shorts-blocked] ytd-mini-guide-entry-renderer:has(a[title="Shorts"]) {
+/* Sidebar / mini-guide entries */
+html[data-ts-shorts] ytd-guide-entry-renderer:has(a[title="Shorts"]),
+html[data-ts-shorts] ytd-mini-guide-entry-renderer:has(a[title="Shorts"]),
+html[data-ts-shorts] ytd-guide-entry-renderer:has(a[href="/shorts"]),
+html[data-ts-shorts] ytd-mini-guide-entry-renderer:has(a[href="/shorts"]),
+html[data-ts-shorts] ytd-guide-entry-renderer:has(a[href^="/shorts"]) {
   display: none !important;
 }
 
-/* ── Shorts in Navigation Menu ───────────────────────────────── */
-html[data-tubesift-shorts-blocked] ytd-guide-entry-renderer:has(a[href="/shorts"]),
-html[data-tubesift-shorts-blocked] ytd-mini-guide-entry-renderer:has(a[href="/shorts"]) {
+/* Filter chip in search / feed chip bars */
+html[data-ts-shorts] yt-chip-cloud-chip-renderer:has(yt-formatted-string[title="Shorts"]) {
   display: none !important;
 }
 
-/* ── Individual Shorts Videos in Feeds ───────────────────────── */
-html[data-tubesift-shorts-blocked] ytd-video-renderer:has(a[href*="/shorts/"]),
-html[data-tubesift-shorts-blocked] ytd-rich-item-renderer:has(a[href*="/shorts/"]),
-html[data-tubesift-shorts-blocked] ytd-grid-video-renderer:has(a[href*="/shorts/"]),
-html[data-tubesift-shorts-blocked] ytd-compact-video-renderer:has(a[href*="/shorts/"]) {
+/* Channel page "Shorts" tab */
+html[data-ts-shorts] yt-tab-shape[tab-title="Shorts"],
+html[data-ts-shorts] tp-yt-paper-tab:has(a[href$="/shorts"]) {
   display: none !important;
 }
 
-/* ── Shorts Overlay Badges on Thumbnails ─────────────────────── */
-html[data-tubesift-shorts-blocked] ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"] {
+/* Shorts badges and notification entries */
+html[data-ts-shorts] ytd-thumbnail-overlay-time-status-renderer[overlay-style="SHORTS"],
+html[data-ts-shorts] ytd-notification-renderer:has(a[href*="/shorts/"]) {
   display: none !important;
 }
 
-/* ── Shorts Notification Entries ─────────────────────────────── */
-html[data-tubesift-shorts-blocked] ytd-notification-renderer:has(a[href*="/shorts/"]) {
+/* Mobile bottom navigation bar entry */
+html[data-ts-shorts] ytm-pivot-bar-item-renderer:has(a[href^="/shorts"]) {
   display: none !important;
 }
 
-/* ── Year Filter Hidden Videos ───────────────────────────────── */
-[data-tubesift-year-hidden] {
+/* ══════════════════════════════════════════════════════════════
+   Card filters (year / duration / keyword / channel)
+   ══════════════════════════════════════════════════════════════ */
+
+html[data-ts-active] [data-ts-hidden] {
   display: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Focus mode
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Home feed ─────────────────────────────────────────────── */
+html[data-ts-hide-home] ytd-browse[page-subtype="home"] ytd-rich-grid-renderer,
+html[data-ts-hide-home] ytd-browse[page-subtype="home"] #contents.ytd-rich-grid-renderer,
+html[data-ts-hide-home] ytd-browse[page-subtype="home"] ytd-feed-filter-chip-bar-renderer {
+  display: none !important;
+}
+
+/* A calm placeholder so the page does not look broken */
+html[data-ts-hide-home] ytd-browse[page-subtype="home"] #primary::after {
+  content: 'Home feed hidden by TubeSift — use search or your subscriptions.';
+  display: block;
+  padding: 80px 24px;
+  text-align: center;
+  font-family: 'Roboto', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--yt-spec-text-secondary, #909090);
+}
+
+/* ── Watch-page recommendations ────────────────────────────── */
+html[data-ts-hide-recs] ytd-watch-flexy #secondary #related,
+html[data-ts-hide-recs] ytd-watch-next-secondary-results-renderer {
+  display: none !important;
+}
+
+/* ── Comments ──────────────────────────────────────────────── */
+html[data-ts-hide-comments] ytd-comments#comments,
+html[data-ts-hide-comments] #comments.ytd-watch-flexy {
+  display: none !important;
+}
+
+/* ── Live chat ─────────────────────────────────────────────── */
+html[data-ts-hide-chat] ytd-live-chat-frame#chat,
+html[data-ts-hide-chat] #chat-container {
+  display: none !important;
+}
+
+/* ── End-screen suggestion overlays ────────────────────────── */
+html[data-ts-hide-endscreen] .html5-endscreen,
+html[data-ts-hide-endscreen] .ytp-endscreen-content,
+html[data-ts-hide-endscreen] .ytp-ce-element {
+  display: none !important;
+}
+
+/* ── Explore / Trending ────────────────────────────────────── */
+html[data-ts-hide-explore] ytd-guide-entry-renderer:has(a[href="/feed/explore"]),
+html[data-ts-hide-explore] ytd-guide-entry-renderer:has(a[href="/feed/trending"]),
+html[data-ts-hide-explore] ytd-mini-guide-entry-renderer:has(a[href="/feed/explore"]) {
+  display: none !important;
+}
+
+/* ── Notification bell ─────────────────────────────────────── */
+html[data-ts-hide-notifications] ytd-notification-topbar-button-renderer {
+  display: none !important;
+}
+
+/* ── Mixes, radio and other auto-generated playlists ───────── */
+html[data-ts-hide-mixes] ytd-rich-item-renderer:has(a[href*="list=RD"]),
+html[data-ts-hide-mixes] ytd-compact-radio-renderer,
+html[data-ts-hide-mixes] ytd-radio-renderer,
+html[data-ts-hide-mixes] yt-lockup-view-model:has(a[href*="list=RD"]) {
+  display: none !important;
+}
+
+/* ── Playables ─────────────────────────────────────────────── */
+html[data-ts-hide-playables] ytd-guide-entry-renderer:has(a[href^="/playables"]),
+html[data-ts-hide-playables] ytd-rich-section-renderer:has(a[href^="/playables"]),
+html[data-ts-hide-playables] ytd-rich-item-renderer:has(a[href^="/playables"]) {
+  display: none !important;
+}
+
+/* ── Grayscale thumbnails ──────────────────────────────────── */
+/* Removes the colour pull of thumbnails without hiding information.
+   Colour returns on hover so the user can still identify a video. */
+html[data-ts-grayscale] ytd-thumbnail img,
+html[data-ts-grayscale] yt-image img,
+html[data-ts-grayscale] .yt-core-image {
+  filter: grayscale(100%);
+  transition: filter 0.25s ease;
+}
+
+html[data-ts-grayscale] ytd-rich-item-renderer:hover ytd-thumbnail img,
+html[data-ts-grayscale] ytd-video-renderer:hover ytd-thumbnail img,
+html[data-ts-grayscale] yt-lockup-view-model:hover .yt-core-image {
+  filter: grayscale(0%);
+}
+
+/* Never desaturate the video currently playing */
+html[data-ts-grayscale] #movie_player img,
+html[data-ts-grayscale] .html5-video-player img {
+  filter: none !important;
+}
+
+/* Respect users who have asked for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html[data-ts-grayscale] ytd-thumbnail img,
+  html[data-ts-grayscale] yt-image img,
+  html[data-ts-grayscale] .yt-core-image {
+    transition: none;
+  }
 }

@@ -1,136 +1,105 @@
 /* ══════════════════════════════════════════════════════════════
-   TubeSift — Shorts Blocked Page Stylesheet
+   TubeSift — Shorts block page
+   Palette, buttons and reset come from theme.css.
    ══════════════════════════════════════════════════════════════ */
 
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
+.wrap {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue',
-    Arial, sans-serif;
-  background: #0f0f0f;
-  color: #e8eaed;
-  -webkit-font-smoothing: antialiased;
-}
-
-.blocked-container {
-  width: 100%;
-  max-width: 480px;
   padding: 24px;
 }
 
-.blocked-card {
+.card {
+  width: 100%;
+  max-width: 440px;
+  padding: 44px 36px 32px;
   text-align: center;
-  padding: 48px 36px 40px;
-  background: linear-gradient(145deg, #1a1a1a 0%, #1e1e1e 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  animation: cardIn 0.4s ease-out;
+  background: var(--ts-surface);
+  border: 1px solid var(--ts-border);
+  border-radius: 18px;
+  box-shadow: var(--ts-shadow-lg);
+  animation: cardIn 0.35s var(--ts-ease);
 }
 
 @keyframes cardIn {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(10px);
+    transform: translateY(10px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: none;
   }
 }
 
-.shield-icon {
-  margin-bottom: 20px;
-  animation: pulse 2s ease-in-out infinite;
+.shield {
+  color: var(--ts-accent-text);
+  margin-bottom: 18px;
+  line-height: 0;
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-.blocked-title {
-  font-size: 26px;
+h1 {
+  font-size: 25px;
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 10px;
   letter-spacing: -0.5px;
+  margin-bottom: 10px;
 }
 
-.blocked-message {
+.message {
   font-size: 14px;
-  color: #909090;
-  line-height: 1.6;
-  margin-bottom: 28px;
-  max-width: 360px;
-  margin-left: auto;
-  margin-right: auto;
+  line-height: 1.65;
+  color: var(--ts-text-muted);
+  max-width: 34ch;
+  margin: 0 auto 22px;
 }
 
-.blocked-message strong {
-  color: #c00;
+.stat {
+  font-size: 12.5px;
   font-weight: 600;
+  color: var(--ts-text-faint);
+  margin: -10px 0 22px;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── Buttons ──────────────────────────────────────────────── */
-.blocked-actions {
+.actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
-  margin-bottom: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
 }
 
-.btn {
-  display: inline-flex;
+/* ── Escape hatch ─────────────────────────────────────────── */
+
+.escape {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  justify-content: center;
+  gap: 9px;
+  padding-top: 18px;
+  border-top: 1px solid var(--ts-border);
+}
+
+.link-btn {
+  padding: 0;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
+  background: none;
+  color: var(--ts-text-faint);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color var(--ts-speed) var(--ts-ease);
 }
 
-.btn-primary {
-  background: #c00;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(204, 0, 0, 0.3);
+.link-btn:hover {
+  color: var(--ts-accent-text);
+  text-decoration: underline;
 }
 
-.btn-primary:hover {
-  background: #e00;
-  box-shadow: 0 4px 12px rgba(204, 0, 0, 0.4);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: #2a2a2a;
-  color: #e8eaed;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.btn-secondary:hover {
-  background: #333;
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
-}
-
-/* ── Hint ─────────────────────────────────────────────────── */
-.blocked-hint {
-  font-size: 12px;
-  color: #606060;
-  line-height: 1.5;
+.sep {
+  color: var(--ts-border-strong);
+  user-select: none;
 }

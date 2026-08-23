@@ -1,0 +1,397 @@
+/* ══════════════════════════════════════════════════════════════
+   TubeSift — Design System
+   Shared tokens and primitives for the popup, options and blocked pages.
+
+   Theming has three states:
+     • no [data-theme]  → follow the OS via prefers-color-scheme
+     • [data-theme="light"] / [data-theme="dark"] → explicit user choice
+
+   The full light palette is defined on bare :root so no colour ever depends
+   on a media query alone; dark then overrides the same token names.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand ─────────────────────────────────────────────── */
+  /* Two reds, on purpose:
+       --ts-accent      fills (buttons, toggles) that carry white text
+       --ts-accent-text red used *as* text on a page background
+     A single red cannot do both jobs — lightening it for readable text on dark
+     ruins the contrast of white text sitting on top of it. */
+  --ts-accent: #cc0000;
+  --ts-accent-hover: #e00000;
+  --ts-accent-text: #cc0000;
+  --ts-accent-soft: rgba(204, 0, 0, 0.12);
+  --ts-accent-ring: rgba(204, 0, 0, 0.28);
+  --ts-on-accent: #ffffff;
+
+  /* ── Surfaces (light) ──────────────────────────────────── */
+  --ts-bg: #f6f7f9;
+  --ts-surface: #ffffff;
+  --ts-surface-2: #f1f2f4;
+  --ts-surface-3: #e7e9ec;
+  --ts-header: linear-gradient(135deg, #ffffff 0%, #f2f3f5 100%);
+
+  /* ── Text (light) ──────────────────────────────────────── */
+  --ts-text: #16181c;
+  --ts-text-muted: #5c6169;
+  /* Deliberately darker than it looks like it "should" be: this token carries
+     small text (field labels, hints, stat captions) and needs to clear the
+     WCAG AA 4.5:1 threshold against --ts-surface, not just look quiet. */
+  --ts-text-faint: #6b7078;
+
+  /* ── Lines (light) ─────────────────────────────────────── */
+  --ts-border: rgba(0, 0, 0, 0.1);
+  --ts-border-strong: rgba(0, 0, 0, 0.18);
+  --ts-track: #d3d6db;
+
+  /* ── Status ────────────────────────────────────────────── */
+  --ts-success: #1a8a3d;
+  --ts-focus: #2f6feb;
+
+  /* ── Shape & motion ────────────────────────────────────── */
+  --ts-radius-sm: 6px;
+  --ts-radius: 10px;
+  --ts-radius-lg: 14px;
+  --ts-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.08);
+  --ts-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+  --ts-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ts-speed: 0.2s;
+
+  --ts-font: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue',
+    Roboto, Arial, sans-serif;
+
+  color-scheme: light;
+}
+
+/* ── Dark: OS preference (unless the user forced light) ──── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ts-accent: #d81f1f;
+    --ts-accent-hover: #ef3434;
+    --ts-accent-text: #ff6b6b;
+    --ts-accent-soft: rgba(255, 60, 60, 0.16);
+    --ts-accent-ring: rgba(255, 60, 60, 0.35);
+    --ts-bg: #0f0f0f;
+    --ts-surface: #1c1c1e;
+    --ts-surface-2: #252527;
+    --ts-surface-3: #303033;
+    --ts-header: linear-gradient(135deg, #1f1f22 0%, #28282c 100%);
+    --ts-text: #e8eaed;
+    --ts-text-muted: #a0a4ab;
+    --ts-text-faint: #8a8f97;
+    --ts-border: rgba(255, 255, 255, 0.09);
+    --ts-border-strong: rgba(255, 255, 255, 0.18);
+    --ts-track: #3c3c40;
+    --ts-success: #4caf50;
+    --ts-focus: #6ea8fe;
+    --ts-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.35);
+    --ts-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+}
+
+/* ── Dark: explicit user choice ───────────────────────────── */
+:root[data-theme='dark'] {
+  --ts-accent: #d81f1f;
+  --ts-accent-hover: #ef3434;
+  --ts-accent-text: #ff6b6b;
+  --ts-accent-soft: rgba(255, 60, 60, 0.16);
+  --ts-accent-ring: rgba(255, 60, 60, 0.35);
+  --ts-bg: #0f0f0f;
+  --ts-surface: #1c1c1e;
+  --ts-surface-2: #252527;
+  --ts-surface-3: #303033;
+  --ts-header: linear-gradient(135deg, #1f1f22 0%, #28282c 100%);
+  --ts-text: #e8eaed;
+  --ts-text-muted: #a0a4ab;
+  --ts-text-faint: #8a8f97;
+  --ts-border: rgba(255, 255, 255, 0.09);
+  --ts-border-strong: rgba(255, 255, 255, 0.18);
+  --ts-track: #3c3c40;
+  --ts-success: #4caf50;
+  --ts-focus: #6ea8fe;
+  --ts-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.35);
+  --ts-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Reset
+   ══════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--ts-font);
+  font-size: 13px;
+  color: var(--ts-text);
+  background: var(--ts-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* A single, consistent focus ring everywhere. */
+:focus-visible {
+  outline: 2px solid var(--ts-focus);
+  outline-offset: 2px;
+  border-radius: var(--ts-radius-sm);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Visible only to assistive technology. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Toggle switch
+   ══════════════════════════════════════════════════════════════ */
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 23px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--ts-track);
+  transition: background var(--ts-speed) var(--ts-ease),
+    box-shadow var(--ts-speed) var(--ts-ease);
+  pointer-events: none;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform var(--ts-speed) var(--ts-ease);
+}
+
+.toggle input:checked + .toggle-slider {
+  background: var(--ts-accent);
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(17px);
+}
+
+.toggle input:disabled + .toggle-slider {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.toggle input:focus-visible + .toggle-slider {
+  outline: 2px solid var(--ts-focus);
+  outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Form controls
+   ══════════════════════════════════════════════════════════════ */
+
+.field-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ts-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 5px;
+}
+
+.select,
+.input,
+.textarea {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--ts-border);
+  border-radius: var(--ts-radius);
+  background: var(--ts-surface-2);
+  color: var(--ts-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color var(--ts-speed) var(--ts-ease),
+    box-shadow var(--ts-speed) var(--ts-ease);
+}
+
+.select {
+  cursor: pointer;
+  appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b9099' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.select:hover,
+.input:hover,
+.textarea:hover {
+  border-color: var(--ts-border-strong);
+}
+
+.select:focus,
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--ts-accent);
+  box-shadow: 0 0 0 3px var(--ts-accent-ring);
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Buttons
+   ══════════════════════════════════════════════════════════════ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--ts-radius);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--ts-speed) var(--ts-ease),
+    border-color var(--ts-speed) var(--ts-ease),
+    transform var(--ts-speed) var(--ts-ease);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--ts-accent);
+  color: var(--ts-on-accent);
+}
+
+.btn-primary:hover {
+  background: var(--ts-accent-hover);
+}
+
+.btn-secondary {
+  background: var(--ts-surface-2);
+  color: var(--ts-text);
+  border-color: var(--ts-border);
+}
+
+.btn-secondary:hover {
+  background: var(--ts-surface-3);
+  border-color: var(--ts-border-strong);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ts-text-muted);
+}
+
+.btn-ghost:hover {
+  background: var(--ts-surface-2);
+  color: var(--ts-text);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Segmented control
+   ══════════════════════════════════════════════════════════════ */
+
+.segmented {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--ts-surface-2);
+  border-radius: var(--ts-radius);
+}
+
+.segmented button {
+  flex: 1;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--ts-radius-sm);
+  background: transparent;
+  color: var(--ts-text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--ts-speed) var(--ts-ease),
+    color var(--ts-speed) var(--ts-ease);
+}
+
+.segmented button:hover {
+  color: var(--ts-text);
+}
+
+.segmented button[aria-pressed='true'],
+.segmented button[aria-selected='true'] {
+  background: var(--ts-accent);
+  color: var(--ts-on-accent);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Motion preferences
+   ══════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
