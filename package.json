@@ -1,0 +1,18 @@
+{
+  "name": "tubesift",
+  "version": "2.0.0",
+  "description": "Block Shorts, filter videos by year, length, keyword or channel, and strip YouTube back to what you came for.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:chrome": "node build.mjs chrome",
+    "build:firefox": "node build.mjs firefox",
+    "build:dev": "node build.mjs --no-zip",
+    "check": "node --check common.js && node --check background.js && node --check content.js && node --check popup.js && node --check options.js && node --check blocked.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

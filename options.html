@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TubeSift — Settings</title>
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ── Top bar ──────────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <img src="icons/icon48.png" alt="" width="34" height="34" class="brand-icon">
+      <div>
+        <h1>TubeSift</h1>
+        <span class="brand-sub" id="version-label"></span>
+      </div>
+    </div>
+
+    <label class="master">
+      <span class="master-label" id="master-label">Filtering active</span>
+      <span class="toggle">
+        <span class="sr-only">Enable TubeSift</span>
+        <input type="checkbox" id="toggle-enabled">
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+  </div>
+</header>
+
+<!-- ── Welcome (shown once, via #welcome) ───────────────────── -->
+<div class="welcome hidden" id="welcome">
+  <div class="welcome-inner">
+    <h2>You're all set</h2>
+    <p>
+      TubeSift is already blocking Shorts. Everything below is optional — turn on
+      what helps and ignore the rest. Your settings save the moment you change them.
+    </p>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- ── Side navigation ────────────────────────────────────── -->
+  <nav class="sidenav" aria-label="Settings sections">
+    <a href="#filters" class="sidenav-link">Filters</a>
+    <a href="#keywords" class="sidenav-link">Keywords</a>
+    <a href="#channels" class="sidenav-link">Channels</a>
+    <a href="#allowlist" class="sidenav-link">Always allow</a>
+    <a href="#focus" class="sidenav-link">Focus mode</a>
+    <a href="#appearance" class="sidenav-link">Appearance</a>
+    <a href="#shortcuts" class="sidenav-link">Shortcuts</a>
+    <a href="#data" class="sidenav-link">Backup &amp; reset</a>
+  </nav>
+
+  <main class="content" id="main">
+
+    <!-- ══ Filters ═══════════════════════════════════════════ -->
+    <section class="section" id="filters">
+      <h2>Filters</h2>
+      <p class="section-desc">
+        Rules applied to every video card in feeds, search results, sidebars and
+        channel pages.
+      </p>
+
+      <div class="card">
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Block Shorts</span>
+            <span class="row-desc">Hide Shorts shelves, cards, tabs and sidebar entries</span>
+          </div>
+          <label class="toggle">
+            <span class="sr-only">Block Shorts</span>
+            <input type="checkbox" data-setting="shortsBlocked">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Redirect direct Shorts links</span>
+            <span class="row-desc">
+              Opening a /shorts/ URL shows a block page instead of the player
+            </span>
+          </div>
+          <label class="toggle">
+            <span class="sr-only">Redirect direct Shorts links</span>
+            <input type="checkbox" data-setting="shortsRedirect">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Filter by publication year</span>
+            <span class="row-desc">Only show videos from the years you pick</span>
+          </div>
+          <label class="toggle">
+            <span class="sr-only">Filter by publication year</span>
+            <input type="checkbox" data-setting="yearFilterEnabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="inset" id="year-inset">
+          <div class="grid-3">
+            <div>
+              <label class="field-label" for="select-year-mode">Rule</label>
+              <select class="select" id="select-year-mode">
+                <option value="single">Published in exactly…</option>
+                <option value="range">Published between…</option>
+                <option value="after">Published in or after…</option>
+                <option value="before">Published in or before…</option>
+              </select>
+            </div>
+
+            <div id="year-single-group">
+              <label class="field-label" for="select-year-single">Year</label>
+              <select class="select" id="select-year-single"></select>
+            </div>
+
+            <div class="grid-span-2 hidden" id="year-range-group">
+              <div class="grid-2">
+                <div>
+                  <label class="field-label" for="select-year-from">From</label>
+                  <select class="select" id="select-year-from"></select>
+                </div>
+                <div>
+                  <label class="field-label" for="select-year-to">To</label>
+                  <select class="select" id="select-year-to"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="hint">
+            YouTube reports relative dates such as "2 years ago", so a video's
+            year is exact to within a few weeks either side of New Year.
+          </p>
+        </div>
+
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Filter by video length</span>
+            <span class="row-desc">Hide anything shorter or longer than your limits</span>
+          </div>
+          <label class="toggle">
+            <span class="sr-only">Filter by video length</span>
+            <input type="checkbox" data-setting="durationFilterEnabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="inset" id="duration-inset">
+          <div class="grid-2">
+            <div>
+              <label class="field-label" for="input-duration-min">Minimum length (minutes)</label>
+              <input class="input" type="number" id="input-duration-min" min="0" max="600" step="1">
+            </div>
+            <div>
+              <label class="field-label" for="input-duration-max">Maximum length (minutes)</label>
+              <input class="input" type="number" id="input-duration-max" min="0" max="600" step="1">
+            </div>
+          </div>
+          <p class="hint">Set a field to <strong>0</strong> to leave that side unlimited.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Keywords ══════════════════════════════════════════ -->
+    <section class="section" id="keywords">
+      <h2>Keywords</h2>
+      <p class="section-desc">
+        Hide any video whose title contains one of these words or phrases.
+        Matching ignores capitalisation.
+      </p>
+
+      <div class="card">
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Enable keyword filter</span>
+            <span class="row-desc" id="keyword-summary">No keywords yet</span>
+          </div>
+          <label class="toggle">
+            <span class="sr-only">Enable keyword filter</span>
+            <input type="checkbox" data-setting="keywordFilterEnabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="inset">
+          <label class="field-label" for="textarea-keywords">
+            One keyword or phrase per line
+          </label>
+          <textarea class="textarea" id="textarea-keywords" spellcheck="false"
+                    placeholder="reaction&#10;drama&#10;you won't believe"></textarea>
+          <p class="hint">
+            Phrases match anywhere in a title, so <strong>react</strong> also
+            hides "reaction" and "reacting". Up to 500 entries.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Channels ══════════════════════════════════════════ -->
+    <section class="section" id="channels">
+      <h2>Channels</h2>
+      <p class="section-desc">
+        Hide every video from these channels. Enter the channel name exactly as
+        it appears under a video.
+      </p>
+
+      <div class="card">
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Enable channel filter</span>
+            <span class="row-desc" id="channel-summary">No channels yet</span>
+          </div>
+          <label class="toggle">
+            <span class="sr-only">Enable channel filter</span>
+            <input type="checkbox" data-setting="channelFilterEnabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="inset">
+          <label class="field-label" for="textarea-channels">One channel per line</label>
+          <textarea class="textarea" id="textarea-channels" spellcheck="false"
+                    placeholder="Example Channel&#10;Another Creator"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Allow list ════════════════════════════════════════ -->
+    <section class="section" id="allowlist">
+      <h2>Always allow</h2>
+      <p class="section-desc">
+        Channels listed here bypass <em>every</em> filter — year, length, keyword
+        and channel rules all step aside for them.
+      </p>
+
+      <div class="card">
+        <div class="inset inset-flush">
+          <label class="field-label" for="textarea-allowed">One channel per line</label>
+          <textarea class="textarea" id="textarea-allowed" spellcheck="false"
+                    placeholder="A channel you never want filtered"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Focus mode ════════════════════════════════════════ -->
+    <section class="section" id="focus">
+      <h2>Focus mode</h2>
+      <p class="section-desc">
+        Remove the parts of YouTube built to keep you scrolling. Each option is
+        independent — nothing here blocks a video you asked for.
+      </p>
+
+      <div class="card card-rows" id="focus-list">
+        <!-- Rows are generated by options.js -->
+      </div>
+    </section>
+
+    <!-- ══ Appearance ════════════════════════════════════════ -->
+    <section class="section" id="appearance">
+      <h2>Appearance &amp; behaviour</h2>
+
+      <div class="card">
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Theme</span>
+            <span class="row-desc">Applies to this page, the popup and the block page</span>
+          </div>
+          <select class="select select-inline" id="select-theme">
+            <option value="system">Match system</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Show count on the toolbar icon</span>
+            <span class="row-desc">A badge with how many videos were filtered today</span>
+          </div>
+          <label class="toggle">
+            <span class="sr-only">Show count on the toolbar icon</span>
+            <input type="checkbox" data-setting="showBadge">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Keep statistics</span>
+            <span class="row-desc">
+              Counts filtered videos on your device only — nothing leaves the browser
+            </span>
+          </div>
+          <label class="toggle">
+            <span class="sr-only">Keep statistics</span>
+            <input type="checkbox" data-setting="countStats">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Shortcuts ═════════════════════════════════════════ -->
+    <section class="section" id="shortcuts">
+      <h2>Keyboard shortcuts</h2>
+      <p class="section-desc">Toggle TubeSift without opening the popup.</p>
+
+      <div class="card">
+        <dl class="shortcut-list" id="shortcut-list">
+          <!-- Filled by options.js from the live command registrations -->
+        </dl>
+        <p class="hint" id="shortcut-hint"></p>
+      </div>
+    </section>
+
+    <!-- ══ Backup & reset ════════════════════════════════════ -->
+    <section class="section" id="data">
+      <h2>Backup &amp; reset</h2>
+      <p class="section-desc">
+        Settings are stored in your browser profile and sync across devices when
+        browser sync is on.
+      </p>
+
+      <div class="card">
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Export settings</span>
+            <span class="row-desc">Save every setting to a JSON file</span>
+          </div>
+          <button class="btn btn-secondary" id="btn-export">Export</button>
+        </div>
+
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Import settings</span>
+            <span class="row-desc">Load a previously exported JSON file</span>
+          </div>
+          <button class="btn btn-secondary" id="btn-import">Import</button>
+          <input type="file" id="file-import" accept="application/json,.json" class="hidden">
+        </div>
+
+        <div class="row">
+          <div class="row-text">
+            <span class="row-title">Reset statistics</span>
+            <span class="row-desc" id="stats-summary">No videos filtered yet</span>
+          </div>
+          <button class="btn btn-secondary" id="btn-reset-stats">Reset counters</button>
+        </div>
+
+        <div class="row row-danger">
+          <div class="row-text">
+            <span class="row-title">Restore defaults</span>
+            <span class="row-desc">Clears every setting, keyword and channel list</span>
+          </div>
+          <button class="btn btn-danger" id="btn-reset-all">Restore defaults</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <p>
+        TubeSift only changes what your own browser displays. It never downloads,
+        modifies or intercepts video streams, and it collects no data about you.
+      </p>
+    </footer>
+
+  </main>
+</div>
+
+<!-- ── Toast ────────────────────────────────────────────────── -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="common.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

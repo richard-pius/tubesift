@@ -3,11 +3,17 @@
   "name": "TubeSift",
   "version": "2.0.0",
   "description": "Block Shorts, filter videos by year, length, keyword or channel, and strip YouTube back to what you came for.",
-  "minimum_chrome_version": "105",
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tubesift@thebluesignal.com",
+      "strict_min_version": "121.0"
+    }
+  },
 
   "permissions": [
     "storage",
-    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess",
     "webNavigation"
   ],
 
@@ -16,7 +22,7 @@
   ],
 
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["common.js", "background.js"]
   },
 
   "content_scripts": [
@@ -47,15 +53,13 @@
   "commands": {
     "toggle-extension": {
       "suggested_key": {
-        "default": "Alt+Shift+T",
-        "mac": "Alt+Shift+T"
+        "default": "Alt+Shift+T"
       },
       "description": "Pause or resume TubeSift"
     },
     "toggle-shorts": {
       "suggested_key": {
-        "default": "Alt+Shift+S",
-        "mac": "Alt+Shift+S"
+        "default": "Alt+Shift+S"
       },
       "description": "Toggle Shorts blocking"
     },

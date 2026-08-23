@@ -3,98 +3,267 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TubeSift — Settings</title>
+  <title>TubeSift</title>
+  <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <!-- ── Header ─────────────────────────────────────────────── -->
-  <header class="popup-header">
-    <div class="brand">
-      <img src="icons/icon48.png" alt="TubeSift" class="brand-icon" width="28" height="28">
-      <div class="brand-text">
-        <h1>TubeSift</h1>
-        <span class="tagline">Video Feed Filter</span>
-      </div>
-    </div>
-  </header>
 
-  <main class="popup-body">
-    <!-- ── Shorts Blocker Section ──────────────────────────── -->
-    <section class="setting-section" id="section-shorts">
-      <div class="setting-row">
-        <div class="setting-info">
-          <span class="setting-label">Block Shorts</span>
-          <span class="setting-desc">Hide all Shorts from YouTube</span>
+<!-- ── Header ───────────────────────────────────────────────── -->
+<header class="pop-header">
+  <div class="brand">
+    <img src="icons/icon48.png" alt="" class="brand-icon" width="30" height="30">
+    <div class="brand-text">
+      <h1>TubeSift</h1>
+      <span class="brand-status" id="status-line">Filtering active</span>
+    </div>
+  </div>
+
+  <label class="toggle master-toggle" for="toggle-enabled">
+    <span class="sr-only">Enable TubeSift</span>
+    <input type="checkbox" id="toggle-enabled">
+    <span class="toggle-slider"></span>
+  </label>
+</header>
+
+<!-- ── Paused banner ────────────────────────────────────────── -->
+<div class="paused-banner hidden" id="paused-banner" role="status">
+  TubeSift is paused — nothing is being filtered.
+</div>
+
+<!-- ── Tabs ─────────────────────────────────────────────────── -->
+<div class="tabs" role="tablist" aria-label="Settings sections">
+  <button class="tab" role="tab" id="tab-filters" aria-controls="panel-filters" aria-selected="true">
+    Filters
+  </button>
+  <button class="tab" role="tab" id="tab-focus" aria-controls="panel-focus" aria-selected="false">
+    Focus
+  </button>
+  <button class="tab" role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false">
+    Stats
+  </button>
+  <span class="tab-indicator" id="tab-indicator" aria-hidden="true"></span>
+</div>
+
+<main class="pop-body" id="pop-body">
+
+  <!-- ══ Filters ══════════════════════════════════════════════ -->
+  <section class="panel" role="tabpanel" id="panel-filters" aria-labelledby="tab-filters">
+
+    <!-- Shorts -->
+    <div class="card">
+      <div class="row">
+        <div class="row-text">
+          <span class="row-title">Block Shorts</span>
+          <span class="row-desc">Hide Shorts from feeds, search and the sidebar</span>
         </div>
         <label class="toggle" for="toggle-shorts">
+          <span class="sr-only">Block Shorts</span>
           <input type="checkbox" id="toggle-shorts">
           <span class="toggle-slider"></span>
         </label>
       </div>
-    </section>
 
-    <hr class="divider">
+      <div class="sub hidden" id="sub-shorts">
+        <div class="row row-sub">
+          <div class="row-text">
+            <span class="row-title-sm">Redirect direct links</span>
+            <span class="row-desc">Opening a /shorts/ URL shows a block page</span>
+          </div>
+          <label class="toggle" for="toggle-shorts-redirect">
+            <span class="sr-only">Redirect direct Shorts links</span>
+            <input type="checkbox" id="toggle-shorts-redirect">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
 
-    <!-- ── Year Filter Section ─────────────────────────────── -->
-    <section class="setting-section" id="section-year">
-      <div class="setting-row">
-        <div class="setting-info">
-          <span class="setting-label">Filter by Year</span>
-          <span class="setting-desc">Show videos from specific years only</span>
+    <!-- Year -->
+    <div class="card">
+      <div class="row">
+        <div class="row-text">
+          <span class="row-title">Filter by year</span>
+          <span class="row-desc">Only show videos published in certain years</span>
         </div>
         <label class="toggle" for="toggle-year">
+          <span class="sr-only">Filter by year</span>
           <input type="checkbox" id="toggle-year">
           <span class="toggle-slider"></span>
         </label>
       </div>
 
-      <!-- Year filter controls (visible when toggle is on) -->
-      <div class="year-controls hidden" id="year-controls">
-        <!-- Mode Selector -->
-        <div class="mode-selector" id="mode-selector">
-          <button class="mode-btn active" data-mode="single" id="btn-mode-single">
-            Single Year
-          </button>
-          <button class="mode-btn" data-mode="range" id="btn-mode-range">
-            Year Range
-          </button>
+      <div class="sub hidden" id="sub-year">
+        <label class="field-label" for="select-year-mode">Rule</label>
+        <select class="select" id="select-year-mode">
+          <option value="single">Published in exactly…</option>
+          <option value="range">Published between…</option>
+          <option value="after">Published in or after…</option>
+          <option value="before">Published in or before…</option>
+        </select>
+
+        <div class="field-group" id="year-single-group">
+          <label class="field-label" for="select-year-single">Year</label>
+          <select class="select" id="select-year-single"></select>
         </div>
 
-        <!-- Single Year Picker -->
-        <div class="year-picker" id="picker-single">
-          <label class="picker-label" for="select-year-single">Year</label>
-          <select class="year-select" id="select-year-single"></select>
-        </div>
-
-        <!-- Year Range Picker -->
-        <div class="year-picker hidden" id="picker-range">
-          <div class="range-row">
-            <div class="range-field">
-              <label class="picker-label" for="select-year-from">From</label>
-              <select class="year-select" id="select-year-from"></select>
+        <div class="field-group hidden" id="year-range-group">
+          <div class="split">
+            <div>
+              <label class="field-label" for="select-year-from">From</label>
+              <select class="select" id="select-year-from"></select>
             </div>
-            <span class="range-separator">—</span>
-            <div class="range-field">
-              <label class="picker-label" for="select-year-to">To</label>
-              <select class="year-select" id="select-year-to"></select>
+            <span class="split-sep" aria-hidden="true">–</span>
+            <div>
+              <label class="field-label" for="select-year-to">To</label>
+              <select class="select" id="select-year-to"></select>
             </div>
           </div>
         </div>
+
+        <p class="note">
+          YouTube shows relative dates ("2 years ago"), so years are accurate to
+          within a few weeks around New Year.
+        </p>
       </div>
-    </section>
-  </main>
+    </div>
 
-  <!-- ── Footer ─────────────────────────────────────────────── -->
-  <footer class="popup-footer">
-    <span class="save-indicator" id="save-indicator">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-      Saved
-    </span>
-    <span class="version">v1.0.0</span>
-  </footer>
+    <!-- Duration -->
+    <div class="card">
+      <div class="row">
+        <div class="row-text">
+          <span class="row-title">Filter by length</span>
+          <span class="row-desc">Skip clips that are too short or too long</span>
+        </div>
+        <label class="toggle" for="toggle-duration">
+          <span class="sr-only">Filter by length</span>
+          <input type="checkbox" id="toggle-duration">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
 
-  <script src="popup.js"></script>
+      <div class="sub hidden" id="sub-duration">
+        <div class="split">
+          <div>
+            <label class="field-label" for="input-duration-min">Min (minutes)</label>
+            <input class="input" type="number" id="input-duration-min" min="0" max="600" step="1" inputmode="numeric">
+          </div>
+          <span class="split-sep" aria-hidden="true">–</span>
+          <div>
+            <label class="field-label" for="input-duration-max">Max (minutes)</label>
+            <input class="input" type="number" id="input-duration-max" min="0" max="600" step="1" inputmode="numeric">
+          </div>
+        </div>
+        <p class="note">Leave a box at <strong>0</strong> for no limit on that side.</p>
+      </div>
+    </div>
+
+    <!-- Keywords -->
+    <div class="card">
+      <div class="row">
+        <div class="row-text">
+          <span class="row-title">Block keywords</span>
+          <span class="row-desc" id="keyword-count">No keywords yet</span>
+        </div>
+        <label class="toggle" for="toggle-keyword">
+          <span class="sr-only">Block keywords</span>
+          <input type="checkbox" id="toggle-keyword">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="link-btn" data-open-options="#keywords">Edit keyword list →</button>
+    </div>
+
+    <!-- Channels -->
+    <div class="card">
+      <div class="row">
+        <div class="row-text">
+          <span class="row-title">Block channels</span>
+          <span class="row-desc" id="channel-count">No channels yet</span>
+        </div>
+        <label class="toggle" for="toggle-channel">
+          <span class="sr-only">Block channels</span>
+          <input type="checkbox" id="toggle-channel">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="link-btn" data-open-options="#channels">Edit channel list →</button>
+    </div>
+
+  </section>
+
+  <!-- ══ Focus ════════════════════════════════════════════════ -->
+  <section class="panel hidden" role="tabpanel" id="panel-focus" aria-labelledby="tab-focus">
+    <p class="panel-intro">
+      Strip away the parts of YouTube that pull you off course.
+    </p>
+
+    <div class="card card-list" id="focus-list">
+      <!-- Rows are generated by popup.js from a single definition list -->
+    </div>
+
+    <button class="btn btn-secondary btn-block" id="btn-focus-preset">
+      Turn on recommended focus set
+    </button>
+  </section>
+
+  <!-- ══ Stats ════════════════════════════════════════════════ -->
+  <section class="panel hidden" role="tabpanel" id="panel-stats" aria-labelledby="tab-stats">
+    <div class="stat-hero">
+      <span class="stat-hero-value" id="stat-today">0</span>
+      <span class="stat-hero-label">videos filtered today</span>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat">
+        <span class="stat-value" id="stat-total">0</span>
+        <span class="stat-label">All time</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-shorts">0</span>
+        <span class="stat-label">Shorts</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-year">0</span>
+        <span class="stat-label">By year</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-duration">0</span>
+        <span class="stat-label">By length</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-keyword">0</span>
+        <span class="stat-label">By keyword</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-channel">0</span>
+        <span class="stat-label">By channel</span>
+      </div>
+    </div>
+
+    <p class="note" id="stat-since"></p>
+
+    <button class="btn btn-ghost btn-block" id="btn-reset-stats">Reset counters</button>
+  </section>
+
+</main>
+
+<!-- ── Footer ───────────────────────────────────────────────── -->
+<footer class="pop-footer">
+  <button class="link-btn" id="btn-options">All settings</button>
+
+  <span class="saved" id="saved-indicator" role="status" aria-live="polite">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    Saved
+  </span>
+
+  <span class="version" id="version-label"></span>
+</footer>
+
+<script src="common.js"></script>
+<script src="popup.js"></script>
 </body>
 </html>
