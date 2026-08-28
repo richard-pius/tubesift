@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2.0.1-blue" alt="Version 2.0.1">
+  <img src="https://img.shields.io/badge/Version-2.0.2-blue" alt="Version 2.0.2">
   <img src="https://img.shields.io/badge/Manifest-V3-brightgreen" alt="Manifest V3">
   <img src="https://img.shields.io/badge/Chrome-105%2B-blue" alt="Chrome 105+">
   <img src="https://img.shields.io/badge/Firefox-121%2B-orange" alt="Firefox 121+">

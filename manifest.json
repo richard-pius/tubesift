@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TubeSift",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Block Shorts, filter videos by year, length, keyword or channel, and strip YouTube back to what you came for.",
   "minimum_chrome_version": "105",
   "permissions": [
