@@ -4,7 +4,7 @@
  * Produces a loadable, store-ready package for each browser:
  *
  *   dist/chrome/   + dist/tubesift-chrome-<version>.zip
- *   dist/firefox/  + dist/tubesift-firefox-<version>.zip
+ *   dist/firefox/  + dist/tubesift-firefox-<version>.xpi
  *
  * Chrome and Firefox need genuinely different manifests — Chrome wants
  * `background.service_worker`, Firefox wants `background.scripts`, and the

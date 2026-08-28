@@ -10,6 +10,7 @@
     "build:chrome": "node build.mjs chrome",
     "build:firefox": "node build.mjs firefox",
     "build:dev": "node build.mjs --no-zip",
+    "bump": "node bump-version.mjs",
     "check": "node --check common.js && node --check background.js && node --check content.js && node --check popup.js && node --check options.js && node --check blocked.js"
   },
   "engines": {

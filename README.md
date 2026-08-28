@@ -128,10 +128,11 @@ npm run build
 
 | Command | Result |
 |---|---|
-| `npm run build` | Both browsers, directories + zips in `dist/` |
+| `npm run build` | Both browsers, directories + zips/xpis in `dist/` |
 | `npm run build:chrome` | Chrome only |
 | `npm run build:firefox` | Firefox only |
 | `npm run build:dev` | Directories only, no zips |
+| `npm run bump` | Increment patch version across all manifests & package.json |
 | `npm run check` | Syntax-check every script |
 
 Each build copies the shared sources and drops in the right manifest, so
@@ -143,6 +144,9 @@ Each build copies the shared sources and drops in the right manifest, so
 
 ```
 tubesift/
+├── .github/
+│   └── workflows/
+│       └── release.yml    # GitHub Actions automated release pipeline
 ├── manifest.json          # Chrome/Chromium manifest (service worker)
 ├── manifest.firefox.json  # Firefox manifest (event page, gecko id)
 ├── common.js              # Browser API shim, settings schema, storage helpers
@@ -153,7 +157,8 @@ tubesift/
 ├── popup.html/.css/.js    # Toolbar popup — Filters / Focus / Stats
 ├── options.html/.css/.js  # Full settings page, backup & restore
 ├── blocked.html/.css/.js  # "Shorts blocked" page
-├── build.mjs              # Zero-dependency two-target build + ZIP writer
+├── build.mjs              # Zero-dependency two-target build + ZIP/XPI writer
+├── bump-version.mjs        # Synchronous version bumper for releases
 ├── icons/                 # 16 / 48 / 128 px
 ├── CHANGELOG.md
 ├── LICENSE
