@@ -1,40 +1,44 @@
 {
   "manifest_version": 3,
   "name": "TubeSift",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Block Shorts, filter videos by year, length, keyword or channel, and strip YouTube back to what you came for.",
-
   "browser_specific_settings": {
     "gecko": {
       "id": "tubesift@thebluesignal.com",
       "strict_min_version": "121.0"
     }
   },
-
   "permissions": [
     "storage",
     "declarativeNetRequestWithHostAccess",
     "webNavigation"
   ],
-
   "host_permissions": [
     "*://*.youtube.com/*"
   ],
-
   "background": {
-    "scripts": ["common.js", "background.js"]
+    "scripts": [
+      "common.js",
+      "background.js"
+    ]
   },
-
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*"],
-      "js": ["common.js", "content.js"],
-      "css": ["content.css"],
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "common.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
       "run_at": "document_start",
       "all_frames": false
     }
   ],
-
   "action": {
     "default_popup": "popup.html",
     "default_title": "TubeSift",
@@ -44,12 +48,10 @@
       "128": "icons/icon128.png"
     }
   },
-
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
   },
-
   "commands": {
     "toggle-extension": {
       "suggested_key": {
@@ -67,20 +69,21 @@
       "description": "Toggle the year filter"
     }
   },
-
   "web_accessible_resources": [
     {
-      "resources": ["blocked.html"],
-      "matches": ["*://*.youtube.com/*"]
+      "resources": [
+        "blocked.html"
+      ],
+      "matches": [
+        "*://*.youtube.com/*"
+      ]
     }
   ],
-
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

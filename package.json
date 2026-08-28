@@ -1,6 +1,6 @@
 {
   "name": "tubesift",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Block Shorts, filter videos by year, length, keyword or channel, and strip YouTube back to what you came for.",
   "private": true,
   "type": "module",

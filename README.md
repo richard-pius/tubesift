@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-2.0.0-blue" alt="Version 2.0.0">
+  <img src="https://img.shields.io/badge/Version-2.0.1-blue" alt="Version 2.0.1">
   <img src="https://img.shields.io/badge/Manifest-V3-brightgreen" alt="Manifest V3">
   <img src="https://img.shields.io/badge/Chrome-105%2B-blue" alt="Chrome 105+">
   <img src="https://img.shields.io/badge/Firefox-121%2B-orange" alt="Firefox 121+">
@@ -73,41 +73,50 @@ anywhere. Can be switched off entirely.
 
 ---
 
-## 🚀 Installation
+## 🚀 Installation & Setup
 
-### Chrome / Edge / Brave / Vivaldi / Opera
+### Option A: From GitHub Releases (Pre-built Assets)
 
-1. Download or clone this repository
-2. Run `npm run build` (or use the repo folder directly — it *is* the Chrome build)
-3. Open `chrome://extensions/`
-4. Turn on **Developer mode** (top right)
-5. Click **Load unpacked** and select `dist/chrome/` (or the repo root)
+#### 🌐 Chrome / Edge / Brave / Vivaldi / Opera
+1. Go to the [Releases](https://github.com/richard-pius/tubesift/releases) page and download `tubesift-chrome-<version>.zip`.
+2. **Extract the ZIP file** to a permanent location on your computer (Chrome requires an unpacked folder for developer loading).
+3. Open your browser and navigate to `chrome://extensions` (or `edge://extensions`).
+4. Enable **Developer mode** using the toggle in the top-right corner.
+5. Click the **Load unpacked** button in the top-left menu.
+6. Select the folder you extracted in Step 2.
 
-### Firefox
-
-Firefox needs a different manifest (event page instead of a service worker), so
-you must build first:
-
-```bash
-npm run build
-```
-
-Then:
-
-1. Open `about:debugging#/runtime/this-firefox`
-2. Click **Load Temporary Add-on…**
-3. Select `dist/firefox/manifest.json`
-
-> Temporary add-ons are removed when Firefox restarts. For a permanent install,
-> the signed `.zip` from `dist/` must be submitted to addons.mozilla.org.
-
-### After installing
-
-1. Pin TubeSift to your toolbar (puzzle-piece icon → pin)
-2. Visit [youtube.com](https://www.youtube.com) — Shorts are blocked by default
-3. Click the TubeSift icon to configure everything else
+#### 🦊 Firefox
+1. Go to the [Releases](https://github.com/richard-pius/tubesift/releases) page and download `tubesift-firefox-<version>.xpi`.
+2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on…**.
+4. Select the downloaded `.xpi` file (or choose `manifest.json` inside an extracted zip).
+*(Note: Temporary add-ons remain active until Firefox restarts).*
 
 ---
+
+### Option B: Building From Source
+
+1. Clone or download this repository.
+2. Ensure Node.js (v18+) is installed.
+3. Run the build script:
+   ```bash
+   npm run build
+   ```
+4. Load the unpacked output directory:
+   - **Chrome**: `dist/chrome/` via `chrome://extensions` (**Load unpacked**).
+   - **Firefox**: `dist/firefox/manifest.json` via `about:debugging` (**Load Temporary Add-on…**).
+
+---
+
+## 💡 How to Use TubeSift
+
+1. **Pin to Toolbar**: Click the extensions puzzle icon in your browser toolbar and pin **TubeSift**.
+2. **Quick Controls**: Click the TubeSift toolbar icon to open the interactive popup menu:
+   - **Pause Switch**: Toggle TubeSift on or off instantly.
+   - **Filters Tab**: Enable or tune Year, Length, Keyword, Channel, and "Always Allow" rules.
+   - **Focus Tab**: Turn on visual clutter switches (hide home feed, comments, recommendations, etc.) or click **Apply Recommended**.
+   - **Stats Tab**: View local counts of videos blocked today and all-time.
+3. **Full Settings & Backup**: Click **Full Settings** at the bottom of the popup (or open Options) to export/import your configuration as JSON or customize advanced options.
 
 ## 🛠️ Building
 

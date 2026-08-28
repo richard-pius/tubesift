@@ -1,32 +1,72 @@
-name: Release
+name: Automated Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+      - feat/v2-cross-browser
+    paths-ignore:
+      - '.github/**'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   build-and-release:
-    name: Build and Release
+    name: Auto Bump, Build & Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Build extensions
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Auto-increment Version
+        id: bump
+        run: |
+          VERSION=$(node bump-version.mjs patch | tail -n 1)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Commit and Tag Version Bump
+        run: |
+          git add package.json manifest.json manifest.firefox.json README.md
+          git commit -m "chore(release): bump version to v${{ steps.bump.outputs.version }} [skip ci]"
+          git tag "v${{ steps.bump.outputs.version }}"
+          git push origin HEAD:${{ github.ref_name }} --tags
+
+      - name: Build extension packages
         run: node build.mjs
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: "v${{ steps.bump.outputs.version }}"
+          name: "TubeSift v${{ steps.bump.outputs.version }}"
           files: |
             dist/*.zip
+            dist/*.xpi
           generate_release_notes: true
+          body: |
+            ### 📥 Download & Installation Instructions
+
+            #### 🌐 Chrome / Edge / Brave / Vivaldi / Opera
+            1. Download `tubesift-chrome-${{ steps.bump.outputs.version }}.zip` below.
+            2. **Extract the ZIP file** to a folder on your computer.
+            3. Open `chrome://extensions`, turn on **Developer Mode**, and click **Load unpacked**.
+            4. Select the extracted folder.
+
+            #### 🦊 Firefox
+            1. Download `tubesift-firefox-${{ steps.bump.outputs.version }}.xpi` below.
+            2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`.
+            3. Click **Load Temporary Add-on…** and select the downloaded `.xpi` file.

@@ -203,7 +203,8 @@ async function buildTarget(target, version, { zip }) {
 
   let zipNote = '';
   if (zip) {
-    const zipPath = join(DIST, `tubesift-${target}-${version}.zip`);
+    const ext = target === 'firefox' ? 'xpi' : 'zip';
+    const zipPath = join(DIST, `tubesift-${target}-${version}.${ext}`);
     await writeFile(zipPath, createZip(entries));
     const { size } = await stat(zipPath);
     zipNote = `  →  ${relative(ROOT, zipPath)} (${(size / 1024).toFixed(1)} KB)`;
